@@ -42,35 +42,32 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     
     public static void main(String args[])
     {   
-        //Set security
-        //if(System.getSecurityManager() == null)
-        //{
-          //  System.setSecurityManager(new RMISecurityManager());
-        //}
+        //Save Address and IP of the channels for further use
+        mdbIP = args[0];
+        mdbPort = Integer.parseInt(args[1]);
+        mdrIP = args[2];
+        mdrPort = Integer.parseInt(args[3]);
+        mcIP = args[4];
+        mcPort = Integer.parseInt(args[5]);
+    
         try
         {
-            //Save Address and IP of the channels for further use
-            mdbIP = args[0];
-            mdbPort = Integer.parseInt(args[1]);
-            mdrIP = args[2];
-            mdrPort = Integer.parseInt(args[3]);
-            mcIP = args[4];
-            mcPort = Integer.parseInt(args[5]);
-            
-            
             Peer peer = new Peer(args[8], Integer.parseInt(args[7]), Integer.parseInt(args[6]));
-            //RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(peer, 0);
-            rg = LocateRegistry.createRegistry(1099);
+           
+            try
+            {
+                rg = LocateRegistry.createRegistry(1099);
+            }
+            catch(ExportException ex)
+            {
+                rg = LocateRegistry.getRegistry(1099);
+            }
             rg.rebind(name, peer);
-            
-            
-            //RemoteInterface ri = new Peer(args[8], Integer.parseInt(args[7]), Integer.parseInt(args[6]));
-            //Naming.rebind(name, ri);
             
             //Initialize MDB, MDR & MC Channels
             startChannels(mdbIP, mdrIP, mcIP, mdbPort, mdrPort, mcPort);
         }
-        catch(Exception ex)
+        catch(RemoteException ex)
         {
             System.out.println("[PEER]: Error in remoting!\nMessage: "+ex.getMessage());
             ex.printStackTrace();
