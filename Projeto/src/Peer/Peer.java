@@ -1,5 +1,6 @@
 package Peer;
 
+import Handlers.FileHandler;
 import Channel.MCChannel;
 import Channel.MDBChannel;
 import Channel.MDRChannel;
@@ -7,11 +8,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.rmi.Naming;
-import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.LinkedList;
 
@@ -31,6 +31,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     private static int mcPort;
     private static Registry rg;
     private static FileHandler fh;
+    private static CustomFileSystem cfs;
     
     public Peer(String ap, int id, int version) throws RemoteException
     {
@@ -41,7 +42,9 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     }
     
     public static void main(String args[])
-    {   
+    {
+        CustomFileSystem cfs = new CustomFileSystem();
+        
         //Save Address and IP of the channels for further use
         mdbIP = args[0];
         mdbPort = Integer.parseInt(args[1]);
@@ -49,7 +52,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         mdrPort = Integer.parseInt(args[3]);
         mcIP = args[4];
         mcPort = Integer.parseInt(args[5]);
-    
+        
         try
         {
             Peer peer = new Peer(args[8], Integer.parseInt(args[7]), Integer.parseInt(args[6]));
@@ -67,7 +70,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
             //Initialize MDB, MDR & MC Channels
             startChannels(mdbIP, mdrIP, mcIP, mdbPort, mdrPort, mcPort);
         }
-        catch(RemoteException ex)
+        catch(Exception ex)
         {
             System.out.println("[PEER]: Error in remoting!\nMessage: "+ex.getMessage());
             ex.printStackTrace();
@@ -83,7 +86,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     {
         try
         {
-            mdb = new MDBChannel(mdbIP, mdbPort);
+            mdb = new MDBChannel(mdbIP, mdbPort, peerId);
             mdr = new MDRChannel(mdrIP, mdrPort);
             mc = new MCChannel(mcIP, mcPort);
             mdb.run();
@@ -100,24 +103,48 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     @Override
     public void backUp(String path, int repDegree)
     {
-        System.out.println(path);
         try
         {
             fh  = new FileHandler();
             LinkedList<Chunk> chunk = fh.splitFile(path);
-            MulticastSocket mcst = new MulticastSocket();
             
-            //The sending peer should not backup the file it sends
-            mcst.setLoopbackMode(false);
+            System.out.println("chunk list size: "+chunk.size());
+            for(int i = 0; i < chunk.size(); i++)
+            {
+                System.out.println("size of chunk No"+chunk.get(i).ChunkNo+": "+chunk.get(i).Chunk.length);
+            }
             
             //Send each chunk individually
+            byte[] bufHeader;
+            byte[] bufMsg;
+            DatagramPacket pack;
+            
             for(Chunk i : chunk)
             {
-                byte[] buf = new byte[i.Chunk.length];
-                DatagramPacket pack = new DatagramPacket(buf, buf.length, InetAddress.getByName(mdbIP), mdbPort);
-                mcst.send(pack);
+                //Message Header:
+                //PUTCHUNK <VERSION> <SENDER_ID> <FILE_ID> <CHUNK_NO> <REP_DEGREE> <CRLF><CRLF>
+                String msgBody = "PUTCHUNK " + 
+                                protVersion + " " +
+                                peerId + " " + 
+                                i.FileId + " " +
+                                i.ChunkNo + " " +
+                                repDegree +
+                                "\r\n\r\n";
+                bufHeader = msgBody.getBytes();
+                
+                bufMsg = new byte[bufHeader.length + i.Chunk.length];
+                System.arraycopy(bufHeader, 0, bufMsg, 0, bufHeader.length);
+                System.arraycopy(i.Chunk, 0, bufMsg, bufHeader.length, i.Chunk.length);
+                
+                pack = new DatagramPacket(bufMsg, bufMsg.length, InetAddress.getByName(mdbIP), mdbPort);
+                
+                //while replication degree < desired
+                //{
+                    mdb.mcst.send(pack);
+                    System.out.println("Sent chunk No"+i.ChunkNo);
+                    // sleep 
+                //}
             }
-            mcst.close();
         }
         catch (IOException ex)
         {

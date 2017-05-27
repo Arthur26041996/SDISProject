@@ -24,16 +24,18 @@ public class CustomFileSystem
         root = path + "\\";
     }
     
-    public void newDir(String dirName)
+    public String newDir(String dirName)
     {
-        File dirFile = new File(root + dirName);
         String dirPath = root + dirName;
         Path filePath = Paths.get(dirPath);
         
         if(!(Files.exists(filePath)))
         {
+            File dirFile = new File(dirPath);
             dirFile.mkdir();
-        } 
+        }
+        
+        return dirPath;
     }
     
     public void removeDir(String dirName)
