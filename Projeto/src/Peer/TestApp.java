@@ -31,6 +31,7 @@ public class TestApp
                     break;
                     
                 case "DELETE":
+                    ri.delete(args[2]);
                     break;
                     
                 case "RECLAIM":

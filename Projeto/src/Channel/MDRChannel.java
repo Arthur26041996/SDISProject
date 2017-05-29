@@ -18,6 +18,8 @@ public class MDRChannel implements Runnable
         this.PORT = PORT;
         group = InetAddress.getByName(IP);
         mcst = new MulticastSocket(PORT);
+        mcst.setTimeToLive(1);
+        mcst.setLoopbackMode(false);
     }
     
     @Override

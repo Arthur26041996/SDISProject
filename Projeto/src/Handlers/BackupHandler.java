@@ -2,7 +2,6 @@ package Handlers;
 
 import Peer.CustomFileSystem;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.file.Files;
 
 public class BackupHandler
@@ -24,11 +23,12 @@ public class BackupHandler
     public boolean store()
     {
         cfs = new CustomFileSystem();
-        String path = cfs.newDir(fileID);
+        String path = cfs.newDir("Peer_" + Peer.Peer.getPeerId());
+        String subDir = cfs.newSubDir(path, fileID);
         
         try
         {
-            Files.write(new File(path + "\\Chunk_" + chunkNo + ".txt").toPath(), chunk);
+            Files.write(new File(subDir + "\\Chunk_" + chunkNo + ".txt").toPath(), chunk);
             return true;
         }
         catch(Exception e)
