@@ -7,7 +7,6 @@ import Channel.MDRChannel;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -23,7 +22,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     private static int peerId;
     private static float protVersion;
     private static MDBChannel mdb;
-    private static MDRChannel mdr;
+    public static MDRChannel mdr;
     public static MCChannel mc;
     private static String mdbIP;
     private static String mdrIP;
@@ -34,13 +33,16 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     private static Registry rg;
     private static FileHandler fh;
     public static RepDegRecord rdr;
+    private boolean espera=false;
+    private static LinkedList<Chunk> chunkList = new LinkedList<Chunk>();
+    public static int tamanio =0;
     
     public Peer(String ap, int id, float version) throws RemoteException
     {
         super();
         name = ap;
         peerId = id;
-        protVersion = version;
+        protVersion = version;  
     }
     
     public static void main(String args[])
@@ -82,6 +84,10 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         return peerId;
     }
     
+    public static float getProtVersion(){
+        return protVersion;
+    }
+    
     public static void startChannels(String mdbIP, String mdrIP, String mcIP, int mdbPort, int mdrPort, int mcPort)
     {
         try
@@ -89,6 +95,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
             mdb = new MDBChannel(mdbIP, mdbPort, peerId);
             mdr = new MDRChannel(mdrIP, mdrPort);
             mc = new MCChannel(mcIP, mcPort);
+            //cT = System.currentTimeMillis();
             (new Thread(mdb)).start();
             (new Thread(mdr)).start();
             (new Thread(mc)).start();
@@ -172,10 +179,45 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     }
 
     @Override
-    public String restore(String fileName)
+    public void restore(String fileName)
     {
         System.out.println("RESTORE method called");
-        return "";
+        fh  = new FileHandler();
+            LinkedList<Chunk> chunk = fh.splitFile(fileName);
+            if(chunk.isEmpty()){
+                System.out.println("vacioooo"); 
+                return;
+            }
+            
+            System.out.println("chunk list size: "+chunk.size());
+            tamanio = chunk.size();
+            byte[] bufHeader;
+            DatagramPacket pack;
+            String fileId=chunk.get(0).getFileId();
+            for(int i = 0; i < chunk.size(); i++)
+            {
+                String msgHeader = "GETCHUNK " + 
+                getProtVersion() + " " +
+                getPeerId() + " " + 
+                fileId + " " +
+                i + " " +
+                "\r\n\r\n" +
+                "\r\n\r\n";
+                bufHeader=msgHeader.getBytes();
+                System.out.println("NUM DE BYTES: " + bufHeader.length);              
+                pack = new DatagramPacket(bufHeader, bufHeader.length,mc.group,
+                                                                     mc.PORT);
+                System.out.println("direccion mc " + mc.mcst);
+                System.out.println("Asking for chunk " + i + " of the file " + fileName + " with id " + fileId);
+               
+            try {
+                this.mc.mcst.send(pack);
+            } catch (IOException ex) {
+                Logger.getLogger(Peer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                
+            }
+        
     }
     
     @Override
@@ -212,5 +254,81 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     {
         System.out.println("STATED method called");
         return "";
+    }
+    
+    public static void chunkListRestore(Chunk novoChunk){
+        System.out.println("ENTROOOOO");
+        System.out.println(chunkList.size());
+        int chunkIndex=novoChunk.getChunkNo();
+        System.out.println("Chunk num " + novoChunk.getChunkNo() + " INdex " + chunkIndex);
+        if(chunkList.isEmpty()){
+            chunkList.add(novoChunk);
+            System.out.println("Almaceno chunk num " + novoChunk.getChunkNo() + " en posicion " + chunkIndex);
+        }
+        else{
+            //Aniade (o no, si ya estaba) el chunk a la lista
+            if((chunkList.size()-1)<chunkIndex){
+                System.out.println("ENTRO EN PRIMER IF ");
+                chunkIndex=0;
+            }
+            
+                System.out.println("ENTRO EN SEGUNDO IF ");
+                if(chunkList.get(chunkIndex).getChunkNo()== novoChunk.getChunkNo()){
+                //no hacer nada, ese chunk ya esta en la list
+                }
+                else if(chunkList.get(chunkIndex).getChunkNo()> novoChunk.getChunkNo()){
+                     System.out.println("POSICION MENOS ");
+                    //Retroceder hasta encontrar uno menor o el mismo
+                    chunkIndex--;
+                    while(chunkList.get(chunkIndex).getChunkNo()>novoChunk.getChunkNo()){
+                        chunkIndex--;
+                    }
+                    if(chunkList.get(chunkIndex).getChunkNo()<novoChunk.getChunkNo()){
+                        System.out.println("Almaceno chunk num " + chunkList.get(chunkIndex).getChunkNo() 
+                                + " en posicion " + chunkIndex);
+                        chunkList.add((chunkIndex+1),novoChunk);
+                    }
+                    else{}//ES el mismo chunk, no hay que añadirlo
+                }
+                else { //chunkList.get(chunkIndex).getChunkNo()<novoChunk.getChunkNo()
+                    //Retroceder hasta encontrar uno menor o el mismo
+                    System.out.println("POSICION MAS ");
+                    chunkIndex++;
+                    if(chunkIndex>chunkList.size()-1){
+                        System.out.println("Almaceno chunk num " + novoChunk.getChunkNo() 
+                                + " en posicion " + chunkIndex);
+                        chunkList.add(novoChunk);
+                    }
+                    while(chunkList.get(chunkIndex).getChunkNo()<novoChunk.getChunkNo()){
+                        chunkIndex++;
+                    }
+                    if(chunkList.get(chunkIndex).getChunkNo()>novoChunk.getChunkNo()){
+                        System.out.println("Almaceno chunk num " + chunkList.get(chunkIndex).getChunkNo() + " en posicion " + chunkIndex);
+                        chunkList.add((chunkIndex-1),novoChunk);
+                    }
+                    else{}//ES el mismo chunk, no hay que añadirlo
+                }
+            
+        }
+        System.out.println(tamanio);
+        System.out.println(chunkList.size());
+        if (chunkList.size()==tamanio){
+            
+            //ordenar al peer juntar chunks
+            fh  = new FileHandler();
+            while(!(chunkList.isEmpty())){
+                System.out.println("-------------------------");
+                System.out.println(tamanio);
+                System.out.println(chunkList.size());
+                System.out.println("-------------------------");
+                Chunk aux=chunkList.removeFirst();
+                System.out.print(aux);
+                fh.addChunk(aux.getFileId(),aux.getChunkNo(),aux.getChunk());
+            }
+            fh.makeFile();
+            System.out.println("TERMINOOOO");
+            tamanio=0;
+            System.out.println(tamanio);
+        }
     }
 }

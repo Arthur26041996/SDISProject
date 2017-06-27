@@ -3,8 +3,10 @@ package Peer;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -95,5 +97,23 @@ public class FileHandler
             ex.printStackTrace();
             return null;
         }
+    }
+    public File makeFile(){
+        System.out.println("VOY A HACER EL FICHEROOOOO");
+        File restored= new File(Paths.get(".").toAbsolutePath().normalize().toString() + "\\FileSystem" + 
+                                        "\\Peer_" + Peer.getPeerId() + "\\recoveries"+Cnk.get(0).getFileId() + ".txt");
+        FileOutputStream fileOuputStream; 
+        while(!(Cnk.isEmpty())){
+            Chunk aux= Cnk.removeFirst();
+            try {
+		fileOuputStream = new FileOutputStream(restored);
+                fileOuputStream.write(aux.getChunk());
+                fileOuputStream.close();
+
+		} catch (Exception e) {
+			//Manejar Error
+                }         
+        }
+        return restored;
     }
 }

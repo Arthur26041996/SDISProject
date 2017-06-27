@@ -27,7 +27,7 @@ public class TestApp
                     break;
                     
                 case "RESTORE":
-                    ri.restore("teste");
+                    ri.restore(args[2]);
                     break;
                     
                 case "DELETE":
