@@ -1,12 +1,11 @@
-package Peer;
+package Handlers;
 
+import Peer.Chunk;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -44,22 +43,39 @@ public class FileHandler
     
     public LinkedList<Chunk> splitFile(String filePath)
     {
-        int sizeOfFiles = 64 * 1000; //64Kb
-        byte[] buffer = new byte[sizeOfFiles];
         File file = new File(filePath);
+        long fileSize = file.length();
+        int chunkQtd = (int)(fileSize/64000 + 1);
+        
+        //Maximum size of each chunk is 64Kb where K stands for 1000
+        byte[] buffer;
+        if(fileSize > 64000)
+        {
+            buffer = new byte[64000];
+        }
+        else
+            buffer = new byte[(int)fileSize];
         
         try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file)))
         {
-            String[] name = file.getName().split("\\.");
             String encoded = encoding(file.getName());
             int tmp = 0;
             int count = 0;
             
-            while((tmp = bis.read(buffer)) > 0)
+            while((tmp = bis.read(buffer, 0, buffer.length)) > 0)
             {
                 Chunk newChunk = new Chunk(encoded, count++, buffer);
                 Cnk.add(newChunk);
+                
+                fileSize -= tmp;
+                if(fileSize > 64000)
+                    buffer = new byte[64000];
+                else
+                    buffer = new byte[(int)fileSize];
             }
+            
+            if(file.length() % 64000 == 0)
+                Cnk.add(new Chunk(encoded, count++, new byte[0]));                
         }
         catch (IOException ex)
         {
@@ -97,23 +113,5 @@ public class FileHandler
             ex.printStackTrace();
             return null;
         }
-    }
-    public File makeFile(){
-        System.out.println("VOY A HACER EL FICHEROOOOO");
-        File restored= new File(Paths.get(".").toAbsolutePath().normalize().toString() + "\\FileSystem" + 
-                                        "\\Peer_" + Peer.getPeerId() + "\\recoveries"+Cnk.get(0).getFileId() + ".txt");
-        FileOutputStream fileOuputStream; 
-        while(!(Cnk.isEmpty())){
-            Chunk aux= Cnk.removeFirst();
-            try {
-		fileOuputStream = new FileOutputStream(restored);
-                fileOuputStream.write(aux.getChunk());
-                fileOuputStream.close();
-
-		} catch (Exception e) {
-			//Manejar Error
-                }         
-        }
-        return restored;
     }
 }

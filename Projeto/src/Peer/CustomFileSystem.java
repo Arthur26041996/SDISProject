@@ -24,25 +24,68 @@ public class CustomFileSystem
         root = path + "\\";
     }
     
-    public void newDir(String dirName)
+    public String newDir(String dirName)
     {
-        File dirFile = new File(root + dirName);
         String dirPath = root + dirName;
         Path filePath = Paths.get(dirPath);
         
         if(!(Files.exists(filePath)))
         {
+            File dirFile = new File(dirPath);
             dirFile.mkdir();
-        } 
+        }
+        
+        return dirPath;
     }
     
-    public void removeDir(String dirName)
+    public String newSubDir(String dirPath, String subDirName)
     {
-        File dirFile = new File(root + dirName);
-        String dirPath = root + dirName;
-        Path filePath = Paths.get(dirPath);
+        if(Files.exists(Paths.get(dirPath)))
+        {
+            String path = dirPath + "\\" + subDirName;
+            
+            if(!(Files.exists(Paths.get(path))))
+            {
+                File dirFile = new File(path);
+                dirFile.mkdir();
+            }
+            
+            return path;
+        }
+        else
+        {
+            File file = new File(dirPath);
+            return newSubDir(newDir(file.getName()), subDirName);
+        }
+    }
+    
+    public String enterDir(String dirName)
+    {
+        if(Files.exists(Paths.get(root+dirName)))
+        {
+            root += (dirName + "\\");
+        }
+        else
+        {
+            throw new NullPointerException("Directory not fount!");
+        }
+        return root;
+    }
+    
+    public void removeDir(File dirName)
+    {
+        File[] files = dirName.listFiles();
         
-        if(Files.exists(filePath))
-            dirFile.delete();
+        if(files != null)
+        {
+            for(File f : files)
+            {
+                if(f.isDirectory())
+                    removeDir(f);
+                else
+                    f.delete();
+            }
+        }
+        dirName.delete();
     }
 }
