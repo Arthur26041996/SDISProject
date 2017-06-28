@@ -113,11 +113,13 @@ public class MCChannel implements Runnable
                                 //Transforma el file en array de bits
                                 FileInputStream fis = new FileInputStream(file);
                                 byte chunk[] = new byte[(int)file.length()];
+                                System.out.println("LONG DEL CHUNK" + chunk.length);
+                                
                                 fis.read(chunk);
                                 
                                 bufMsg=new byte[bufHeader.length + chunk.length];
                                  
-                                
+                                System.out.println("bytes a enviar" + bufMsg.length);
                                 //public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
                                 System.arraycopy(bufHeader, 0, bufMsg, 0, bufHeader.length);
                                 System.arraycopy(chunk, 0, bufMsg, bufHeader.length, chunk.length);
@@ -127,14 +129,14 @@ public class MCChannel implements Runnable
                                 
                     try {
                         //Esperar entre 0 y 400
-                        Thread.sleep(100);
+                        Thread.sleep(1000);
 //int sleep = (int) (Math.random() * 400);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(MCChannel.class.getName()).log(Level.SEVERE, null, ex);
                     }
                                 
                                 
-                                Peer.Peer.mdr.mcst.send(pack);
+                    Peer.Peer.mdr.mcst.send(pack);
                                  
                         }
                         catch(NullPointerException ex)
