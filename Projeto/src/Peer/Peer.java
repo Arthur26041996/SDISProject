@@ -63,6 +63,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
             {
                 rg = LocateRegistry.getRegistry(1099);
             }
+            System.setProperty("java.rmi.server.hostname", "192.168.108.46");
             rg.rebind(name, peer);
             
             startChannels();
