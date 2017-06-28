@@ -36,6 +36,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     private boolean espera=false;
     private static LinkedList<Chunk> chunkList = new LinkedList<Chunk>();
     public static int tamanio =0;
+    public static String restoreLast="";
     
     public Peer(String ap, int id, float version) throws RemoteException
     {
@@ -180,7 +181,8 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
 
     @Override
     public void restore(String fileName)
-    {
+    {   
+        restoreLast=fileName;
         System.out.println("RESTORE method called");
         fh  = new FileHandler();
             LinkedList<Chunk> chunk = fh.splitFile(fileName);
@@ -207,10 +209,12 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
                 System.out.println("NUM DE BYTES: " + bufHeader.length);              
                 pack = new DatagramPacket(bufHeader, bufHeader.length,mc.group,
                                                                      mc.PORT);
+                System.out.println(" lond del message " + bufHeader.length);
                 System.out.println("direccion mc " + mc.mcst);
                 System.out.println("Asking for chunk " + i + " of the file " + fileName + " with id " + fileId);
                
             try {
+                
                 this.mc.mcst.send(pack);
             } catch (IOException ex) {
                 Logger.getLogger(Peer.class.getName()).log(Level.SEVERE, null, ex);
@@ -258,6 +262,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     
     public static void chunkListRestore(Chunk novoChunk){
         System.out.println("ENTROOOOO");
+        boolean added=false;
         System.out.println(chunkList.size());
         int chunkIndex=novoChunk.getChunkNo();
         System.out.println("Chunk num " + novoChunk.getChunkNo() + " INdex " + chunkIndex);
@@ -270,46 +275,66 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
             if((chunkList.size()-1)<chunkIndex){
                 System.out.println("ENTRO EN PRIMER IF ");
                 chunkIndex=0;
+                while(chunkIndex<chunkList.size() && !added){
+                    if(chunkList.get(chunkIndex).getChunkNo()== novoChunk.getChunkNo()){
+                        //nada
+                        added=true;
+                    }
+                    else if(chunkList.get(chunkIndex).getChunkNo() < novoChunk.getChunkNo()){
+                        chunkIndex++;
+                    }
+                    else{
+                        chunkList.add((chunkIndex),novoChunk);
+                        added=true;
+                    }
+                }
+                if(!added){
+                    chunkList.addLast(novoChunk);
+                    added=true;
+                }
             }
+            else{ //chunkIndex == o < que chunk.size()-1
+        
+            
             
                 System.out.println("ENTRO EN SEGUNDO IF ");
                 if(chunkList.get(chunkIndex).getChunkNo()== novoChunk.getChunkNo()){
                 //no hacer nada, ese chunk ya esta en la list
+                added=true;
                 }
                 else if(chunkList.get(chunkIndex).getChunkNo()> novoChunk.getChunkNo()){
-                     System.out.println("POSICION MENOS ");
-                    //Retroceder hasta encontrar uno menor o el mismo
-                    chunkIndex--;
-                    while(chunkList.get(chunkIndex).getChunkNo()>novoChunk.getChunkNo()){
-                        chunkIndex--;
+                    System.out.println("POSICION MENOS ");
+                    System.out.println("INDEX " + chunkIndex);
+                    while(chunkList.get(chunkIndex).getChunkNo()>novoChunk.getChunkNo() && !added){
+                        if(chunkIndex-1>0){
+                            chunkIndex--;
+                        }
+                        else{
+                            chunkList.addFirst(novoChunk);
+                            added=true;
+                        }
+                        //Retroceder hasta encontrar uno menor o el mismo
                     }
-                    if(chunkList.get(chunkIndex).getChunkNo()<novoChunk.getChunkNo()){
-                        System.out.println("Almaceno chunk num " + chunkList.get(chunkIndex).getChunkNo() 
-                                + " en posicion " + chunkIndex);
-                        chunkList.add((chunkIndex+1),novoChunk);
+                    
+                    if(!added){
+                        if(chunkList.get(chunkIndex).getChunkNo()== novoChunk.getChunkNo()){
+                            //no hacer nada, ese chunk ya esta en la list
+                            added=true;
+                        }
+                        else{//novochunk>index
+                            chunkList.add((chunkIndex + 1),novoChunk);
+                            added=true;
+                        }
                     }
-                    else{}//ES el mismo chunk, no hay que añadirlo
                 }
-                else { //chunkList.get(chunkIndex).getChunkNo()<novoChunk.getChunkNo()
-                    //Retroceder hasta encontrar uno menor o el mismo
-                    System.out.println("POSICION MAS ");
-                    chunkIndex++;
-                    if(chunkIndex>chunkList.size()-1){
-                        System.out.println("Almaceno chunk num " + novoChunk.getChunkNo() 
-                                + " en posicion " + chunkIndex);
-                        chunkList.add(novoChunk);
-                    }
-                    while(chunkList.get(chunkIndex).getChunkNo()<novoChunk.getChunkNo()){
-                        chunkIndex++;
-                    }
-                    if(chunkList.get(chunkIndex).getChunkNo()>novoChunk.getChunkNo()){
-                        System.out.println("Almaceno chunk num " + chunkList.get(chunkIndex).getChunkNo() + " en posicion " + chunkIndex);
-                        chunkList.add((chunkIndex-1),novoChunk);
-                    }
-                    else{}//ES el mismo chunk, no hay que añadirlo
+                    
+                else{
+                    //no se da este caso nunca
                 }
-            
+             
+            }
         }
+        
         System.out.println(tamanio);
         System.out.println(chunkList.size());
         if (chunkList.size()==tamanio){
