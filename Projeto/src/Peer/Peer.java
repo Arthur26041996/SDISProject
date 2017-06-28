@@ -55,7 +55,6 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         try
         {
             Peer peer = new Peer(args[8], Integer.parseInt(args[7]), Float.parseFloat(args[6]), Long.parseLong(args[9]));
-           
             try
             {
                 rg = LocateRegistry.createRegistry(1099);

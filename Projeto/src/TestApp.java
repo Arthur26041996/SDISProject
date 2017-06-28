@@ -29,7 +29,7 @@ public class TestApp
         
         try
         {
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            Registry registry = LocateRegistry.getRegistry("192.168.108.46", 1099);
             RemoteInterface ri = (RemoteInterface) registry.lookup(args[0]);
             
             switch(args[1])
