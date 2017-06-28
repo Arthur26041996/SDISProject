@@ -1,53 +1,79 @@
 package Peer;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+
 public class RepDegree
 {
-    private String fileName;
-    private int repDegDesired;
-    public int repDegActual;
-
-    public RepDegree(String fileName, int repDegDesired, int repDegActual)
+    private final Map<String, Map<Integer, LinkedList<Integer>>> chunk;
+    
+    public RepDegree()
     {
-        this.fileName = fileName;
-        this.repDegDesired = repDegDesired;
-        this.repDegActual = repDegActual;
-    }
-
-    public String getFileName()
-    {
-        return fileName;
-    }
-
-    public void setFileName(String fileName)
-    {
-        this.fileName = fileName;
-    }
-
-    public int getRepDegDesired()
-    {
-        return repDegDesired;
-    }
-
-    public void setRepDegDesired(int repDegDesired)
-    {
-        this.repDegDesired = repDegDesired;
-    }
-
-    public int getRepDegActual()
-    {
-        return repDegActual;
-    }
-
-    public void setRepDegActual(int repDegActual)
-    {
-        this.repDegActual = repDegActual;
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        return fileName.equals(((RepDegree)obj).fileName);
+        chunk = new HashMap<>();
     }
     
+    public void addNewFile(String fileID)
+    {
+        if(!chunk.containsKey(fileID))
+        {
+            Map<Integer, LinkedList<Integer>> map = new HashMap<>();
+            chunk.put(fileID, map);
+        }
+    }
     
+    public void addNewChunk(String fileID, int chunkNo)
+    {
+        if(chunk.containsKey(fileID))
+        {
+            if(!chunk.get(fileID).containsKey(chunkNo))
+            {
+                Map<Integer, LinkedList<Integer>> temp = new HashMap<>();
+                temp.put(chunkNo, null);
+                chunk.replace(fileID, temp);
+            }
+        }   
+    }
+    
+    public void addNewPeer(String fileID, int chunkNo, int peerID)
+    {
+        if(chunk.containsKey(fileID) && chunk.get(fileID).containsKey(chunkNo))
+        {
+            if(chunk.get(fileID).get(chunkNo) == null)
+            {
+                LinkedList<Integer> peers = new LinkedList<>();
+                peers.add(peerID);
+                chunk.get(fileID).replace(chunkNo, peers);
+            }
+            else if(!chunk.get(fileID).get(chunkNo).contains(peerID))
+            {
+                chunk.get(fileID).get(chunkNo).add(peerID);
+            }
+        }
+    }
+    
+    public void removePeer(String fileID, int chunkNo, int peerID)
+    {
+        if(chunk.containsKey(fileID) && chunk.get(fileID).containsKey(chunkNo) && chunk.get(fileID).get(chunkNo).contains(peerID))
+            chunk.get(fileID).get(chunkNo).remove(peerID);
+    }
+    
+    public void removeChunk(String fileID, int chunkNo)
+    {
+        if(chunk.containsKey(fileID) && chunk.get(fileID).containsKey(chunkNo))
+            chunk.get(fileID).remove(chunkNo);
+    }
+    
+    public void removeFile(String fileID)
+    {
+        if(chunk.containsKey(fileID))
+            chunk.remove(fileID);
+    }
+    
+    public int getReplicationDegree(String fileID, int chunkNo)
+    {
+        if(chunk.containsKey(fileID) && chunk.get(fileID).containsKey(chunkNo))
+            return chunk.get(fileID).get(chunkNo).size();
+        return 0;
+    }
 }
