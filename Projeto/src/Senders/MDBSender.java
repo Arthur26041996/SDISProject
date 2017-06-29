@@ -45,6 +45,7 @@ public class MDBSender extends Thread
         chunks = fh.splitFile(file);
         int request = Peer.state.addRequest(file, chunks.getFirst().FileId, repDegree);
         Peer.mc.setNewRequest(request);
+        Peer.rd.setDesiredReplicationDegree(chunks.getFirst().FileId, repDegree);
         
         byte[] header, body;
         
@@ -54,7 +55,6 @@ public class MDBSender extends Thread
         {
             System.out.println("[MDB SENDER]: SIZE OF CHUNK "+c.getChunkNo()+" = "+c.Chunk.length+" bytes");
         
-            Peer.state.setChunk(request, c.ChunkNo, Peer.rd.getReplicationDegree(c.FileId, c.ChunkNo));
             
             String message = "PUTCHUNK " + 
                               version + " " +
@@ -81,6 +81,7 @@ public class MDBSender extends Thread
                 {   
                     System.out.println("[MDB SENDER]: ATTEMPT "+iteration);
                     socket.send(packet);
+                    Peer.state.setChunk(request, c.ChunkNo, Peer.rd.getReplicationDegree(c.FileId, c.ChunkNo));
                     Thread.sleep(sleepTime);
                     sleepTime *= 2;
                 }
@@ -95,7 +96,7 @@ public class MDBSender extends Thread
                     System.out.println(ex.getMessage());
                 }
             }
-                System.out.println("[MDB SENDER]: CHUNK "+c.ChunkNo+" - PERCEIVED REPLICATION DEGREE "+Peer.rd.getReplicationDegree(c.FileId, c.ChunkNo));
+            System.out.println("[MDB SENDER]: CHUNK "+c.ChunkNo+" - PERCEIVED REPLICATION DEGREE "+Peer.rd.getReplicationDegree(c.FileId, c.ChunkNo));
         }
         System.out.println("\n\n\n");
     }

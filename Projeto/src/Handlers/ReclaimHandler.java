@@ -34,6 +34,12 @@ public class ReclaimHandler extends Thread
             Peer.Peer.state.setAvailMem(Peer.Peer.state.getAvailMem() - memToReclaim);
             return;
         }
+        else if(memToReclaim < Peer.Peer.state.getTotalMem() && memToReclaim > Peer.Peer.state.getUsedMem())
+        {
+            memToReclaim -= Peer.Peer.state.getAvailMem();
+            Peer.Peer.state.setAvailMem(0);
+            Peer.Peer.state.setTotalMem(Peer.Peer.state.getTotalMem() - memToReclaim);
+        }
         
         if(files != null)
         {

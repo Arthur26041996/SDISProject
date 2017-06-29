@@ -1,7 +1,13 @@
 package Channels.Handlers;
 
 import Handlers.DeleteHandler;
+import Senders.MDBSender;
 import java.net.DatagramPacket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MCHandler extends Thread
 {
@@ -28,7 +34,7 @@ public class MCHandler extends Thread
         [1] - Protocol Version
         [2] - Sender ID
         [3] - File ID
-        [4] - Chunk Nº (for Message Type 'STORED')
+        [4] - Chunk Nº (for Message Type 'STORED' & 'REMOVED')
         */
         
         if(peerID == Integer.parseInt(header[2]))
@@ -53,7 +59,36 @@ public class MCHandler extends Thread
                 break;
                 
             case "REMOVED":
-                System.out.println("[MC HANDLER]: 'REMOVED' MESSAGE RECEIVED");
+                int sleepTime = (new Random()).nextInt(401);
+        
+                try
+                {
+                    Thread.sleep(sleepTime);
+                    if(Peer.Peer.rd.getReplicationDegree(header[3], Integer.parseInt(header[4].trim())) < Peer.Peer.rd.getDesiredReplicationDegree(header[3]))
+                    {
+                        MDBSender sender = new MDBSender(Peer.Peer.getMdbIP(),
+                                                         Peer.Peer.getMdbPort(),
+                                                         Float.parseFloat(header[1]),
+                                                         peerID,
+                                                         header[3],
+                                                         Peer.Peer.rd.getDesiredReplicationDegree(header[3]));
+                        sender.start();
+                    }
+                } catch (InterruptedException ex)
+                {
+                    System.out.println("[MC HANDLER]: ERROR IN METHOD \'Thread.sleep()\'");
+                    ex.printStackTrace();
+                } 
+                catch (UnknownHostException ex)
+                {
+                    System.out.println("[MC HANDLER]: UNKNOWN HOST");
+                    ex.printStackTrace();
+                } 
+                catch (SocketException ex)
+                {
+                    System.out.println("[MC HANDLER]: FAILED ATTEMPTING TO OPEN SOCKET");
+                    ex.printStackTrace();
+                }
                 break;
                 
             default:

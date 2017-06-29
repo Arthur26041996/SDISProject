@@ -7,10 +7,12 @@ import java.util.Map;
 public class RepDegree
 {
     private final Map<String, Map<Integer, LinkedList<Integer>>> chunk;
+    private final Map<String, Integer> desiredReplicationDegree;
     
     public RepDegree()
     {
         chunk = new HashMap<>();
+        desiredReplicationDegree = new HashMap<>();
     }
     
     public void addNewFile(String fileID)
@@ -74,6 +76,18 @@ public class RepDegree
     {
         if(chunk.containsKey(fileID) && chunk.get(fileID).containsKey(chunkNo))
             return chunk.get(fileID).get(chunkNo).size();
+        return 0;
+    }
+    
+    public void setDesiredReplicationDegree(String fileID, int replicationDegree)
+    {
+        desiredReplicationDegree.put(fileID, replicationDegree);
+    }
+    
+    public int getDesiredReplicationDegree(String fileID)
+    {
+        if(desiredReplicationDegree.containsKey(fileID))
+            return desiredReplicationDegree.get(fileID);
         return 0;
     }
 }

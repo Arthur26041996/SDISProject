@@ -9,6 +9,7 @@ import Senders.MDBSender;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -63,8 +64,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
             {
                 rg = LocateRegistry.getRegistry(1099);
             }
-            System.setProperty("java.rmi.server.hostname", "192.168.108.46");
-            rg.rebind(name, peer);
+            rg.rebind("//localhost:1099/"+name, peer);
             
             startChannels();
             
