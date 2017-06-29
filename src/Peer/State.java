@@ -100,7 +100,7 @@ public final class State
         rh.setDate(df.format(new Date()));
         rh.setPathName(filePath);
         rh.setFile(fileID);
-        rh.setDesiredRD(repDegree);
+        Peer.rd.setDesiredReplicationDegree(fileID, repDegree);
         requests.add(rh);
         
         saveRequests();
@@ -108,45 +108,24 @@ public final class State
         return id;
     }
     
-    public Map<Integer, Integer> getChunks(int requestId)
-    {   
-        for(Request rh : requests)
-        {
-            if(rh.getId() == requestId)
-                return rh.getChunks();
-        }
-        return null;
-    }
-    
-    public boolean setChunk(int requestId, int chunkNo, int chunkRepDegree)
+    public boolean addChunkToRequest(int requestID, int chunkNo)
     {
-        for(Request rh : requests)
+        for(Request r : requests)
         {
-            if(rh.getId() == requestId)
+            if(r.getId() == requestID)
             {
-                rh.setChunks(chunkNo, chunkRepDegree);
-                saveRequests();
+                r.setChunks(chunkNo);
                 return true;
             }
         }
         return false;
     }
     
-    public int getDesiredReplicationDegree(int requestId)
-    {
-        for(Request rh : requests)
-        {
-            if(rh.getId() == requestId)
-                return rh.getDesiredRD();
-        }
-        return -1;
-    }
-    
     private void saveRequests()
     {
         String path = cfs.newSubDir("Peer_"+peerId, "Control");
         
-        File file = new File(path+"\\Requests.txt");
+        File file = new File(path+"//Requests.txt");
         StringBuilder sb = new StringBuilder();
         
         for(Request rh : requests)
@@ -155,11 +134,11 @@ public final class State
             sb.append("DATE ").append(rh.getDate()).append("\r\n");
             sb.append("FILE_PATH ").append(rh.getPathName()).append("\r\n");
             sb.append("FILE_ID ").append(rh.getFile()).append("\r\n");
-            sb.append("DES_REP_DEG ").append(rh.getDesiredRD()).append("\r\n");
-            for(Integer key : rh.getChunks().keySet())
+            sb.append("DES_REP_DEG ").append(Peer.rd.getDesiredReplicationDegree(rh.getFile())).append("\r\n");
+            for(int chunk : rh.getChunks())
             {
-                sb.append("CHUNK ").append(key).append("\r\n");
-                sb.append("REP_DEG ").append(rh.getChunks().get(key)).append("\r\n");
+                sb.append("CHUNK ").append(chunk).append("\r\n");
+                sb.append("REP_DEG ").append(Peer.rd.getReplicationDegree(rh.getFile(), chunk)).append("\r\n");
             }
             sb.append("\r\n\r\n");
         }
@@ -251,7 +230,7 @@ public final class State
     
     private Map<String, Map<Integer, Long>> loadStoredChunks()
     {
-        File fl = new File("FileSystem\\Peer_"+peerId);
+        File fl = new File("FileSystem//Peer_"+peerId);
         Map<Integer, Long> chunk;
         Map<String, Map<Integer, Long>> file = new HashMap<>(); 
         long size = 0;
@@ -267,7 +246,7 @@ public final class State
             
             for(File g : f.listFiles())
             {
-                chunk.put(Integer.parseInt(g.getName().split("_")[1].split("\\.")[0]), g.length());
+                chunk.put(Integer.parseInt(g.getName().split("_")[1].split("//.")[0]), g.length());
                 size += g.length();
             }
             file.put(f.getName(), chunk);
@@ -292,11 +271,11 @@ public final class State
             sb.append("\nRequest Date: ").append(rh.getDate());
             sb.append("\nFile pathname: ").append(rh.getPathName());
             sb.append("\nFile ID: ").append(rh.getFile());
-            sb.append("\nDesired Replication Degree: ").append(rh.getDesiredRD());
-            for(int j : rh.getChunks().keySet())
+            sb.append("\nDesired Replication Degree: ").append(Peer.rd.getDesiredReplicationDegree(rh.getFile()));
+            for(int chunk : rh.getChunks())//Peer.rd.getChunks(rh.getFile()))
             {
-                sb.append("\nChunk No ").append(j);
-                sb.append(" - Replication Degree: ").append(rh.getChunks().get(j));
+                sb.append("\nChunk No ").append(chunk);
+                sb.append(" - Replication Degree: ").append(Peer.rd.getReplicationDegree(rh.getFile(), chunk));
             }
             sb.append("\n\n");
         }
@@ -317,9 +296,9 @@ public final class State
         sb.append("------------------------------------------------\n");
         sb.append("\t\tSTORAGE INFO\n");
         sb.append("------------------------------------------------\n");
-        sb.append("Reserved: ").append(totalMem).append(" bytes");
-        sb.append("\nUsed: ").append(usedMem).append(" bytes");
-        sb.append("\nFree: ").append(availMem).append(" bytes");
+        sb.append("Reserved: ").append(totalMem/1000).append(" Kb");
+        sb.append("\nUsed: ").append(usedMem/1000).append(" Kb");
+        sb.append("\nFree: ").append(availMem/1000).append(" Kb");
         sb.append("\n\n");
         
         return sb;

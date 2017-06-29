@@ -9,7 +9,6 @@ import java.net.UnknownHostException;
 
 public class MCChannel extends Thread
 {
-    private int requestID;
     private final int peerID;
     private InetAddress group;
     private MulticastSocket mcst;
@@ -24,11 +23,6 @@ public class MCChannel extends Thread
         this.peerID = peerID;
     }
     
-    public void setNewRequest(int requestID)
-    {
-        this.requestID = requestID;
-    }
-    
     @Override
     public void run()
     {
@@ -41,7 +35,7 @@ public class MCChannel extends Thread
             {
                 mcst.receive(dp);
                 
-                MCHandler handler = new MCHandler(dp, peerID, requestID);
+                MCHandler handler = new MCHandler(dp, peerID);
                 handler.start();
             }
         }

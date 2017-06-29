@@ -1,7 +1,7 @@
 package Objects;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Request
 {
@@ -9,8 +9,7 @@ public class Request
     private String date;
     private String pathName;
     private String file;
-    private int desiredRD;
-    private Map<Integer, Integer> chunks;
+    private List<Integer> chunks;
 
     public Request(int id)
     {
@@ -18,19 +17,15 @@ public class Request
         this.date = "";
         this.pathName = "";
         this.file = "";
-        this.desiredRD = 0;
-        this.chunks = new HashMap<>();
+        this.chunks = new LinkedList<>();
     }
 
-    public Request(int id, String pathName, String file, int desiredRD, int chunkNo, int chunkRD)
+    public Request(int id, String pathName, String file)
     {
         this.id = id;
         this.date = "";
         this.pathName = pathName;
         this.file = file;
-        this.desiredRD = desiredRD;
-        this.chunks = new HashMap<>();
-        chunks.put(chunkNo, chunkRD);
     }
 
     public int getId()
@@ -73,31 +68,16 @@ public class Request
         this.file = file;
     }
 
-    public int getDesiredRD()
-    {
-        return desiredRD;
-    }
-
-    public void setDesiredRD(int desiredRD)
-    {
-        this.desiredRD = desiredRD;
-    }
-
-    public Map<Integer, Integer> getChunks()
-    {
+    public List<Integer> getChunks() {
         return chunks;
     }
 
-    public void setChunks(Map<Integer, Integer> chunks)
-    {
-        this.chunks = chunks;
-    }
-    
-    public void setChunks(int chunkNo, int chunkRD)
-    {
-        this.chunks.put(chunkNo, chunkRD);
+    public void setChunks(int chunkNo) {
+        chunks.add(chunkNo);
     }
 
+    
+    
     @Override
     public boolean equals(Object obj)
     {

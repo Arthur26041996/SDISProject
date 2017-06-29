@@ -12,7 +12,7 @@ public class DeleteHandler extends Thread
     public DeleteHandler(int peerID, String fileID)
     {
         this.peerID = peerID;
-        this.file = new File("FileSystem\\Peer_"+peerID+"\\"+fileID);
+        this.file = new File("FileSystem//Peer_"+peerID+"//"+fileID);
         this.cfs = new CustomFileSystem();
     }
 

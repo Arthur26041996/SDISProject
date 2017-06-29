@@ -2,7 +2,6 @@ package Senders;
 
 import Handlers.FileHandler;
 import Objects.Chunk;
-import Peer.RepDegree;
 import Peer.Peer;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -43,8 +42,8 @@ public class MDBSender extends Thread
     {
         fh = new FileHandler();
         chunks = fh.splitFile(file);
-        int request = Peer.state.addRequest(file, chunks.getFirst().FileId, repDegree);
-        Peer.mc.setNewRequest(request);
+        
+        int request = Peer.state.addRequest(file, chunks.getFirst().getFileId(), repDegree);
         
         byte[] header, body;
         
@@ -52,30 +51,30 @@ public class MDBSender extends Thread
         System.out.println("[MDB SENDER]: CHUNK LIST SIZE = "+chunks.size());
         for(Chunk c : chunks)
         {
-            System.out.println("[MDB SENDER]: SIZE OF CHUNK "+c.getChunkNo()+" = "+c.Chunk.length+" bytes");
+            Peer.state.addChunkToRequest(request, c.getChunkNo());
+            System.out.println("[MDB SENDER]: SIZE OF CHUNK "+c.getChunkNo()+" = "+c.getChunk().length+" bytes");
         
-            Peer.state.setChunk(request, c.ChunkNo, Peer.rd.getReplicationDegree(c.FileId, c.ChunkNo));
             
             String message = "PUTCHUNK " + 
                               version + " " +
                               peerID + " " + 
-                              c.FileId + " " +
-                              c.ChunkNo + " " +
+                              c.getFileId() + " " +
+                              c.getChunkNo() + " " +
                               repDegree +
                               "\r\n\r\n";
             header = message.getBytes();
             
-            body = new byte[header.length + c.Chunk.length];
+            body = new byte[header.length + c.getChunk().length];
             System.arraycopy(header, 0, body, 0, header.length);
-            System.arraycopy(c.Chunk, 0, body, header.length, c.Chunk.length);
+            System.arraycopy(c.getChunk(), 0, body, header.length, c.getChunk().length);
             
             packet = new DatagramPacket(body, body.length, address, port);
             
             int sleepTime = 1000;
             int iteration = 0;
             
-            System.out.println("[MDB SENDER]: SENDING CHUNK "+c.ChunkNo);
-            while(Peer.rd.getReplicationDegree(c.FileId, c.ChunkNo) < repDegree && (iteration++ < 5))
+            System.out.println("[MDB SENDER]: SENDING CHUNK "+c.getChunkNo());
+            while(Peer.rd.getReplicationDegree(c.getFileId(), c.getChunkNo()) < repDegree && (iteration++ < 5))
             {
                 try
                 {   
@@ -86,7 +85,7 @@ public class MDBSender extends Thread
                 }
                 catch (IOException ex)
                 {
-                    System.out.println("[MDB SENDER]: FAILED ATTEMPTING TO SEND CHUNK "+c.ChunkNo);
+                    System.out.println("[MDB SENDER]: FAILED ATTEMPTING TO SEND CHUNK "+c.getChunkNo());
                     System.out.println(ex.getMessage());
                 }
                 catch (InterruptedException ex)
@@ -95,7 +94,7 @@ public class MDBSender extends Thread
                     System.out.println(ex.getMessage());
                 }
             }
-                System.out.println("[MDB SENDER]: CHUNK "+c.ChunkNo+" - PERCEIVED REPLICATION DEGREE "+Peer.rd.getReplicationDegree(c.FileId, c.ChunkNo));
+            System.out.println("[MDB SENDER]: CHUNK "+c.getChunkNo()+" - PERCEIVED REPLICATION DEGREE "+Peer.rd.getReplicationDegree(c.getFileId(), c.getChunkNo()));
         }
         System.out.println("\n\n\n");
     }

@@ -39,12 +39,36 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         name = ap;
         peerID = id;
         protVersion = version;
-        state = new State(peerID, totalMem);
+        state = new State(peerID, totalMem*1000);
         rd = new RepDegree();
     }
     
     public static void main(String args[])
     {
+        if(args.length != 10 || args[0].equals("help"))
+        {
+            if(args.length != 10)
+                System.out.println("[PEER]: INVALID USE");
+            else if(args[0].equals("help"))
+                System.out.println("[PEER]: USER GUID");
+                
+            System.out.println("USAGE: "
+                             + "<MDB HOSTNAME> <MDB PORT> <MDR HOSTNAME> <MDR PORT> \n"
+                             + "<MC HOSTNAME> <MC PORT> <VERSION> <PEER ID> < PEER AP> <TOTAL STORAGE>"
+                             + "\n\n\t<MDB HOSTNAME>: hostname for the multicast data backup channel"
+                             + "\n\t<MDB PORT>: listening port for the multicast data backup channel"
+                             + "\n\t<MDR HOSTNAME>: hostname for the multicast data restore channel"
+                             + "\n\t<MDR PORT>: listening port for the multicast data restore channel"
+                             + "\n\t<MC HOSTNAME>: hostname for the multicast control channel"
+                             + "\n\t<MC PORT>: listening port for the multicast control channel"
+                             + "\n\t<VERSION>: protocol version (in 0.0 format)"
+                             + "\n\t<PEER ID>: peer unique id"
+                             + "\n\t<PEER AP>: peer access point"
+                             + "\n\t<TOTAL STORAGE>: total value of storage to be used by this peer (in kb, with k = 1000)");
+            return;
+        }
+        
+        
         mdbIP = args[0];
         mdbPort = Integer.parseInt(args[1]);
         mdrIP = args[2];
@@ -55,14 +79,13 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         try
         {
             Peer peer = new Peer(args[8], Integer.parseInt(args[7]), Float.parseFloat(args[6]), Long.parseLong(args[9]));
-           
             try
             {
-                rg = LocateRegistry.createRegistry(1099);
+                rg = LocateRegistry.createRegistry(3050);
             }
             catch(ExportException ex)
             {
-                rg = LocateRegistry.getRegistry(1099);
+                rg = LocateRegistry.getRegistry(3050);
             }
             rg.rebind(name, peer);
             
@@ -127,8 +150,6 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     {
         Peer.protVersion = protVersion;
     }
-    
-    
     
     public static void startChannels()
     {

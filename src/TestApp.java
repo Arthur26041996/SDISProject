@@ -2,9 +2,6 @@
 
 import Peer.RemoteInterface;
 import java.net.UnknownHostException;
-import java.rmi.AccessException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -29,7 +26,7 @@ public class TestApp
         
         try
         {
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            Registry registry = LocateRegistry.getRegistry(3050);
             RemoteInterface ri = (RemoteInterface) registry.lookup(args[0]);
             
             switch(args[1])

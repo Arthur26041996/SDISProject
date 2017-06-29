@@ -3,13 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Arthur/Documents/NetBeansProjects/Projeto/src/Handlers/ReclaimHandler.java</file>
-            <file>file:/C:/Users/Arthur/Documents/NetBeansProjects/Projeto/src/Handlers/BackupHandler.java</file>
-            <file>file:/C:/Users/Arthur/Documents/NetBeansProjects/Projeto/src/Senders/MCSender.java</file>
-            <file>file:/C:/Users/Arthur/Documents/NetBeansProjects/Projeto/src/Channels/Handlers/MDBHandler.java</file>
-            <file>file:/C:/Users/Arthur/Documents/NetBeansProjects/Projeto/src/Peer/Peer.java</file>
-            <file>file:/C:/Users/Arthur/Documents/NetBeansProjects/Projeto/src/Channels/Handlers/MCHandler.java</file>
-            <file>file:/C:/Users/Arthur/Documents/NetBeansProjects/Projeto/src/Senders/MDBSender.java</file>
+            <file>file:/usr/users2/2016/up201609953/NetBeansProjects/SDIS/src/Peer/RepDegree.java</file>
+            <file>file:/usr/users2/2016/up201609953/NetBeansProjects/SDIS/src/Senders/MDBSender.java</file>
+            <file>file:/usr/users2/2016/up201609953/NetBeansProjects/SDIS/src/Peer/State.java</file>
+            <file>file:/usr/users2/2016/up201609953/NetBeansProjects/SDIS/src/Channels/Handlers/MCHandler.java</file>
         </group>
     </open-files>
 </project-private>

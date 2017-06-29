@@ -13,7 +13,7 @@ public class CustomFileSystem
     public CustomFileSystem()
     {
         File dir = new File("FileSystem");
-        String path = Paths.get(".").toAbsolutePath().normalize().toString() + "\\FileSystem";
+        String path = Paths.get(".").toAbsolutePath().normalize().toString() + "//FileSystem";
         Path p = Paths.get(path);
         
         if(!(Files.exists(p)))
@@ -21,7 +21,7 @@ public class CustomFileSystem
             dir.mkdir();
         }
         
-        root = path + "\\";
+        root = path + "//";
     }
     
     public String newDir(String dirName)
@@ -42,7 +42,7 @@ public class CustomFileSystem
     {
         if(Files.exists(Paths.get(dirPath)))
         {
-            String path = dirPath + "\\" + subDirName;
+            String path = dirPath + "//" + subDirName;
             
             if(!(Files.exists(Paths.get(path))))
             {
@@ -80,7 +80,7 @@ public class CustomFileSystem
 
     public String createControlDir(int peerId)
     {
-        String dirPath = root + "Peer_" + peerId + "\\Control";
+        String dirPath = root + "Peer_" + peerId + "//Control";
         Path path = Paths.get(dirPath);
         
         if(!(Files.exists(path)))

@@ -2,9 +2,9 @@ package Objects;
 
 public class Chunk
 {
-    public int ChunkNo;
-    public String FileId;
-    public byte[] Chunk;
+    private int ChunkNo;
+    private String FileId;
+    private byte[] Chunk;
     
     public Chunk(String fileId, int chunkNo, byte[] chunk)
     {

@@ -47,7 +47,7 @@ public class BackupHandler extends Thread
             }
             else
             {
-                Files.write(new File(subDir + "\\Chunk_" + chunkNo + ".txt").toPath(), chunk);
+                Files.write(new File(subDir + "//Chunk_" + chunkNo + ".txt").toPath(), chunk);
             }
             
             MCSender sender = new MCSender(Peer.Peer.getMcIP(),
