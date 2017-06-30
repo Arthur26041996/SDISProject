@@ -1,11 +1,14 @@
 package Handlers;
 
 import Objects.Chunk;
+import Peer.Peer;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -87,5 +90,36 @@ public class FileHandler
             ex.printStackTrace();
             return null;
         }
+    }
+    
+    public void addChunk(String fileId, int chunkNo, byte[] chunk)
+    {
+        System.out.println("ANIADO EL CHUNK");
+        Chunk newChunk = new Chunk(fileId, chunkNo, chunk);
+        cnk.add(newChunk);
+    }
+    
+    //Pre: linked list of chunks is ordered by increasing chunkNo
+  public File makeFile(){
+        System.out.println("VOY A HACER EL FICHEROOOOO");
+        File restored= new File(Paths.get(".").toAbsolutePath().normalize().toString() + "\\FileSystem" + 
+                                        "\\Peer_" + Peer.getPeerID() + "\\recoveries\\"+cnk.get(0).getFileId() + ".txt");
+        FileOutputStream fileOuputStream;
+        try {
+        fileOuputStream = new FileOutputStream(restored);
+        while(!(cnk.isEmpty())){
+            Chunk aux= cnk.removeFirst();
+            
+		
+                fileOuputStream.write(aux.getChunk());
+                
+
+		
+        }
+        fileOuputStream.close();
+        } catch (Exception e) {
+			//Manejar Error
+                }         
+        return restored;
     }
 }
