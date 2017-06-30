@@ -3,7 +3,9 @@ package Peer;
 import Channels.MCChannel;
 import Channels.MDBChannel;
 import Channels.MDRChannel;
+import Handlers.FileHandler;
 import Handlers.ReclaimHandler;
+import Objects.Chunk;
 import Senders.MCSender;
 import Senders.MDBSender;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.LinkedList;
 
 public class Peer extends UnicastRemoteObject implements RemoteInterface
 {
@@ -39,36 +42,12 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         name = ap;
         peerID = id;
         protVersion = version;
-        state = new State(peerID, totalMem*1000);
+        state = new State(peerID, totalMem);
         rd = new RepDegree();
     }
     
     public static void main(String args[])
     {
-        if(args.length != 10 || args[0].equals("help"))
-        {
-            if(args.length != 10)
-                System.out.println("[PEER]: INVALID USE");
-            else if(args[0].equals("help"))
-                System.out.println("[PEER]: USER GUID");
-                
-            System.out.println("USAGE: "
-                             + "<MDB HOSTNAME> <MDB PORT> <MDR HOSTNAME> <MDR PORT> \n"
-                             + "<MC HOSTNAME> <MC PORT> <VERSION> <PEER ID> < PEER AP> <TOTAL STORAGE>"
-                             + "\n\n\t<MDB HOSTNAME>: hostname for the multicast data backup channel"
-                             + "\n\t<MDB PORT>: listening port for the multicast data backup channel"
-                             + "\n\t<MDR HOSTNAME>: hostname for the multicast data restore channel"
-                             + "\n\t<MDR PORT>: listening port for the multicast data restore channel"
-                             + "\n\t<MC HOSTNAME>: hostname for the multicast control channel"
-                             + "\n\t<MC PORT>: listening port for the multicast control channel"
-                             + "\n\t<VERSION>: protocol version (in 0.0 format)"
-                             + "\n\t<PEER ID>: peer unique id"
-                             + "\n\t<PEER AP>: peer access point"
-                             + "\n\t<TOTAL STORAGE>: total value of storage to be used by this peer (in kb, with k = 1000)");
-            return;
-        }
-        
-        
         mdbIP = args[0];
         mdbPort = Integer.parseInt(args[1]);
         mdrIP = args[2];
@@ -79,6 +58,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         try
         {
             Peer peer = new Peer(args[8], Integer.parseInt(args[7]), Float.parseFloat(args[6]), Long.parseLong(args[9]));
+           
             try
             {
                 rg = LocateRegistry.createRegistry(3050);
@@ -151,6 +131,8 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         Peer.protVersion = protVersion;
     }
     
+    
+    
     public static void startChannels()
     {
         try
@@ -190,10 +172,25 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     }
 
     @Override
-    public String restore(String fileName)
+    public void restore(String fileName)
     {
         System.out.println("RESTORE method called");
-        return "";
+        try
+        {
+            MCSender sender = new MCSender(mcIP, mcPort, protVersion, peerID, "RESTORE");
+            sender.setFile(fileName);
+            sender.start();
+        }
+        catch (SocketException ex)
+        {
+            System.out.println("[PEER - RESTORE]: FAILED ATTEMPTING TO OPEN SOCKET");
+            ex.printStackTrace();
+        }
+        catch (UnknownHostException ex)
+        {
+            System.out.println("[PEER - RESTORE]: UNKNOWN HOST");
+            ex.printStackTrace();
+        }
     }
     
     @Override
