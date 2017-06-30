@@ -1,5 +1,6 @@
 package Channels;
 
+import Channels.Handlers.MDRHandler;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -34,12 +35,12 @@ public class MDRChannel extends Thread
             while(true)
             {
                 mcst.receive(dp);
-                //(new Thread(new RestoreHandler(dp, Peer.Peer.getPeerId()))).start();
+                new Thread(new MDRHandler(dp,peerID)).start();
             }
         }
         catch (IOException ex)
         {
-            System.out.println("[MDB CHANNEL]: ERROR RECEIVING PACKET");
+            System.out.println("[MDR CHANNEL]: ERROR RECEIVING PACKET");
             ex.printStackTrace();
         }
     }
