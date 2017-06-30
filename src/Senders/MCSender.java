@@ -94,9 +94,7 @@ public class MCSender extends Thread
                                                 address,
                                                 port);
                     int sleepTime = (new Random()).nextInt(401);
-                    Peer.Peer.rd.addNewFile(this.file);
-                    Peer.Peer.rd.addNewChunk(this.file, chunkNo);
-                    Peer.Peer.rd.addNewPeer(this.file, chunkNo, peerID);
+                    Peer.Peer.rd.add(this.file, chunkNo, peerID);
                     Thread.sleep(sleepTime);
                     socket.send(packet);
                 }
@@ -122,8 +120,7 @@ public class MCSender extends Thread
                           +version+" "
                           +peerID+" "
                           +this.file+" "
-                          +chunkNo
-                          +"\r\n\r\n";
+                          +chunkNo;
                 
                 try
                 {

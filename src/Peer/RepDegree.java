@@ -18,7 +18,34 @@ public class RepDegree
     
     public void add(String fileID, int chunkNo, int peerID)
     {
-        
+        if(chunk.containsKey(fileID))
+        {
+            if(chunk.get(fileID).containsKey(chunkNo))
+            {
+                if(!chunk.get(fileID).get(chunkNo).contains(peerID))
+                    chunk.get(fileID).get(chunkNo).add(peerID);
+            }
+            else
+            {
+                LinkedList<Integer> peers = new LinkedList<>();
+                peers.add(peerID);
+                
+                Map<Integer, LinkedList<Integer>> chunks = new HashMap<>();
+                chunks.put(chunkNo, peers);
+                
+                chunk.get(fileID).put(chunkNo, peers);
+            }
+        }
+        else
+        {
+            LinkedList<Integer> peers = new LinkedList<>();
+            peers.add(peerID);
+            
+            Map<Integer, LinkedList<Integer>> chunks = new HashMap<>();
+            chunks.put(chunkNo, peers);
+            
+            chunk.put(fileID, chunks);
+        }
     }
     
     public void addNewFile(String fileID)
@@ -80,8 +107,16 @@ public class RepDegree
     
     public void removePeer(String fileID, int chunkNo, int peerID)
     {
-        if(chunk.containsKey(fileID) && chunk.get(fileID).containsKey(chunkNo) && chunk.get(fileID).get(chunkNo).contains(peerID))
-            chunk.get(fileID).get(chunkNo).remove(peerID);
+        if(chunk.containsKey(fileID))
+        {
+            if(chunk.get(fileID).containsKey(chunkNo))
+            {
+                if(chunk.get(fileID).get(chunkNo).contains(peerID))
+                {
+                    chunk.get(fileID).get(chunkNo).remove((Object) peerID);
+                }
+            }
+        }
     }
     
     public void removeChunk(String fileID, int chunkNo)

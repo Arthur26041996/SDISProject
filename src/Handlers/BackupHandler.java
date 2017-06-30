@@ -71,7 +71,7 @@ public class BackupHandler extends Thread
         }
         catch (IOException ex)
         {
-            Peer.Peer.state.removeChunkStored(fileID, chunkNo);
+            Peer.Peer.state.removeChunkStored(fileID, chunkNo, true);
             System.out.println("[BACKUP HANDLER]: FAILED TO WRITE FILE");
             ex.printStackTrace();
         }

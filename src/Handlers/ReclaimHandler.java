@@ -7,53 +7,64 @@ import java.net.UnknownHostException;
 
 public class ReclaimHandler extends Thread
 {
-    private long memToReclaim;
-    private File file;
-    private File[] aux;
-    private File[] files;
-
-    public ReclaimHandler(long memToReclaim)
+    private long reclaim;
+    private long total;
+    private long used;
+    private long free;
+    
+    public ReclaimHandler(long reclaim)
     {
-        this.memToReclaim = memToReclaim;
-        this.file = new File("FileSystem//Peer_"+Peer.Peer.getPeerID());
-        this.files = file.listFiles();
+        this.reclaim = reclaim;
+        this.total = Peer.Peer.state.getTotalMem();
+        this.used = Peer.Peer.state.getUsedMem();
+        this.free = Peer.Peer.state.getAvailMem();
     }
 
     @Override
     public void run()
     {
-        if(memToReclaim > Peer.Peer.state.getTotalMem())
+        if(reclaim > total)
         {
-            System.out.println("[RECLAIM HANDLER]: VALUE TO RECLAIM IS HIGHER THAN TOTAL STORAGE SPACE RESERVED");
-            System.out.println("[RECLAIM HANDLER]: COULD NOT RECLAIM STORAGE SPACE");
-            return;
+            System.out.println("[RECLAIM HANDLER]: VALUE TO RECLAIM IS HIGHER THAN TOTAL MEMORY");
         }
-        else if(memToReclaim <= Peer.Peer.state.getAvailMem())
+        else if(reclaim == 0)
         {
-            Peer.Peer.state.setTotalMem(Peer.Peer.state.getTotalMem() - memToReclaim);
-            Peer.Peer.state.setAvailMem(Peer.Peer.state.getAvailMem() - memToReclaim);
-            return;
+            //Do nothing
         }
-        else if(memToReclaim < Peer.Peer.state.getTotalMem() && memToReclaim > Peer.Peer.state.getUsedMem())
+        else if(reclaim <= free)
         {
-            memToReclaim -= Peer.Peer.state.getAvailMem();
-            Peer.Peer.state.setAvailMem(0);
-            Peer.Peer.state.setTotalMem(Peer.Peer.state.getTotalMem() - memToReclaim);
+            free -= reclaim;
+            total -= reclaim;
+            Peer.Peer.state.setAvailMem(free);
+            Peer.Peer.state.setTotalMem(total);
         }
-        
-        if(files != null)
+        else
         {
-            memToReclaim -= Peer.Peer.state.getAvailMem();
-            Peer.Peer.state.setTotalMem(Peer.Peer.state.getTotalMem() - Peer.Peer.state.getAvailMem());
-            for(int i = 0; i < files.length && (Peer.Peer.state.getUsedMem() + memToReclaim) > Peer.Peer.state.getTotalMem(); i++)
+            reclaim -= free;
+            total -= free;
+            free = 0;
+            
+            File peer = new File("FileSystem//Peer_"+Peer.Peer.getPeerID());
+            File[] files = peer.listFiles();
+            File[] chunks;
+            File chunk;
+            long chunkSize;
+            
+            for(int i = 0; i < files.length; i++)
             {
-                file = files[i];
-                aux = file.listFiles();
-                for(int j = 0; j < aux.length && (Peer.Peer.state.getUsedMem() + memToReclaim) > Peer.Peer.state.getTotalMem(); j++)
+                System.out.println("FILES.LENGTH: "+files.length);
+                chunks = files[i].listFiles();
+                
+                for(int j = 0; j < chunks.length; j++)
                 {
-                    aux[j].delete();
-                    Peer.Peer.state.removeChunkStored(file.getName(), j);
-                    Peer.Peer.rd.removePeer(file.getName(), j, Peer.Peer.getPeerID());
+                    chunk = chunks[j];
+                    System.out.println(chunk.getName());
+                    chunkSize = chunk.length();
+                    chunk.delete();
+                    Peer.Peer.state.removeChunkStored(
+                                                        files[i].getName(),
+                                                        Integer.parseInt(chunk.getName().split("_")[1].split("\\.")[0]), 
+                                                        false);
                     
                     try
                     {
@@ -62,28 +73,40 @@ public class ReclaimHandler extends Thread
                                 Peer.Peer.getProtVersion(),
                                 Peer.Peer.getPeerID(),
                                 "RECLAIM");
-                        sender.setChunkNo(j);
-                        sender.setFile(file.getName());
+                        sender.setFile(files[i].getName());
+                        sender.setChunkNo(Integer.parseInt(
+                                          chunk.getName().split("_")[1].split("\\.")[0]
+                                        ));
                         sender.start();
+                        
+                        used -= chunkSize;
+                        if(chunkSize >= reclaim)
+                        {
+                            total -= reclaim;
+                            free = total - used;
+                            Peer.Peer.state.setTotalMem(total);
+                            Peer.Peer.state.setUsedMem(used);
+                            Peer.Peer.state.setAvailMem(free);
+                            return;
+                        }
+                        else
+                        {
+                            total -= chunkSize;
+                            reclaim -= chunkSize;
+                        }
                     }
                     catch (SocketException ex)
                     {
-                        System.out.println("[RECLAIM HANDLER]: ERROR ATTEMPTING TO OPEN SOCKET");
+                        System.out.println("[RECLAIM HANDLER]: FAILED ATTEMPTING TO OPEN SOCKET");
                         ex.printStackTrace();
                     }
                     catch (UnknownHostException ex)
                     {
-                        System.out.println("[RECLAIM HANDLER]: UNKNOWN HOST");
+                        System.out.println("[RECLAIM HANDLER]: UNKNOW HOST");
                         ex.printStackTrace();
                     }
                 }
             }
-            Peer.Peer.state.setAvailMem(0);
-            Peer.Peer.state.setTotalMem(Peer.Peer.state.getTotalMem() - memToReclaim);
-        }
-        else
-        {
-            System.out.println("[RECLAIM HANDLER]: NO FILE TO DELETE");
         }
     }
 }

@@ -216,14 +216,17 @@ public final class State
         return true;
     }
     
-    public boolean removeChunkStored(String fileId, int chunkNo)
+    public boolean removeChunkStored(String fileId, int chunkNo, boolean updateMemory)
     {
         if(!stored.containsKey(fileId))
             return false;
         
-        long size = stored.get(fileId).get(chunkNo);
-        availMem += size;
-        usedMem -= size;
+        if(updateMemory)
+        {
+            long size = stored.get(fileId).get(chunkNo);
+            availMem += size;
+            usedMem -= size;
+        }
         stored.get(fileId).remove(chunkNo);
         return true;
     }
@@ -246,7 +249,7 @@ public final class State
             
             for(File g : f.listFiles())
             {
-                chunk.put(Integer.parseInt(g.getName().split("_")[1].split("//.")[0]), g.length());
+                chunk.put(Integer.parseInt(g.getName().split("_")[1].split("\\.")[0]), g.length());
                 size += g.length();
             }
             file.put(f.getName(), chunk);
@@ -282,14 +285,14 @@ public final class State
         sb.append("------------------------------------------------\n");
         sb.append("\t\tSTORED CHUNKS\n");
         sb.append("------------------------------------------------\n");
-        for(String i : stored.keySet())
+        for(String file : stored.keySet())
         {
-            sb.append("File ID: ").append(i);
-            for(int j : stored.get(i).keySet())
+            sb.append("File ID: ").append(file);
+            for(int chunk : stored.get(file).keySet())
             {
-                sb.append("\nChunkNo ").append(j).append(" - ");
-                sb.append("Size: ").append((stored.get(i)).get(j)).append(" bytes").append(" - ");
-                sb.append("Perceived Replication Degree: ").append(Peer.rd.getReplicationDegree(i, j));
+                sb.append("\nChunkNo ").append(chunk).append(" - ");
+                sb.append("Size: ").append((stored.get(file)).get(chunk)).append(" bytes").append(" - ");
+                sb.append("Perceived Replication Degree: ").append(Peer.rd.getReplicationDegree(file, chunk));
             }
             sb.append("\n\n");
         }
