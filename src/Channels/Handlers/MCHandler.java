@@ -2,14 +2,11 @@ package Channels.Handlers;
 
 import Handlers.DeleteHandler;
 import Handlers.RestoreHandler;
-import Senders.MDBSender;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.Random;
 import java.util.logging.Level;
@@ -107,9 +104,10 @@ public class MCHandler extends Thread
                                     System.out.println("[MC HANDLER]: ERROR IN METHOD \'Thread.sleep()\'");
                                     ex.printStackTrace();
                                     return;
-                                } catch (IOException ex)
+                                }
+                                catch (IOException ex)
                                 {
-                                    Logger.getLogger(MCHandler.class.getName()).log(Level.SEVERE, null, ex);
+
                                 }
                             }
                         }

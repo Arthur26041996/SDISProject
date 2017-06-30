@@ -5,15 +5,13 @@
  */
 package Senders;
 
-import Handlers.FileHandler;
-import Objects.Chunk;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,13 +51,12 @@ public class MDRSender extends Thread {
         version + " " +
         peerID + " " +
         file + " " +
-        numChunk + " " +
-        "\r\n\r\n" +
+        numChunk +
         "\r\n\r\n";
         bufHeader=msgHeader.getBytes();
         bufMsg=new byte[bufHeader.length + chunk.length];
                                  
-        System.out.println("bytes a enviar" + bufMsg.length);
+        System.out.println("bytes a enviar: " + bufMsg.length);
         //public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
         System.arraycopy(bufHeader, 0, bufMsg, 0, bufHeader.length);
         System.arraycopy(chunk, 0, bufMsg, bufHeader.length, chunk.length);
@@ -69,10 +66,18 @@ public class MDRSender extends Thread {
             //datagrama preparado para enviar por mdr
             // pack = new DatagramPacket(bufMsg, bufMsg.length, Peer.Peer.mdr.group,Peer.Peer.mdr.PORT);
             //Esperar entre 0 y 400
-            Thread.sleep(1000);
+            Thread.sleep((new Random()).nextInt(401));
             socket.send(packet);
-        } catch (InterruptedException | IOException ex) {
-            Logger.getLogger(MDRSender.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (InterruptedException ex)
+        {
+            System.out.println("[MDR SENDER]: ERROR IN METHOD \'Thread.sleep()\'");
+            ex.printStackTrace();
+        }
+        catch(IOException ex)
+        {
+            System.out.println("[MC SENDER]: FAILED ATTEMPTION TO SEND PACKET");
+            ex.printStackTrace();
         }
     }    
 }

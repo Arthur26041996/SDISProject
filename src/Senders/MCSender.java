@@ -145,7 +145,6 @@ public class MCSender extends Thread
                 break;
                 
             case "RESTORE":
-                System.out.println("ENTREI");
                 LinkedList<Chunk> chunk = fh.splitFile(this.file);
                 if(chunk.isEmpty()){
                     System.out.println("[PEER - restore] : File doesn' exits"); 

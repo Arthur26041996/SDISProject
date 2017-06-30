@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import Senders.MDRSender;
+import java.nio.file.Files;
 
 /**
  *
@@ -27,9 +28,9 @@ public class RestoreHandler extends Thread{
     public RestoreHandler(int peerID, String fileID, int numChunk)
     {
         this.peerID = peerID;
-        this.file = new File(Paths.get(".").toAbsolutePath().normalize().toString() + "\\FileSystem" + 
-                                        "\\Peer_" + peerID + "\\"+ 
-                                        fileID + "\\Chunk_" + numChunk + ".txt");
+        this.file = new File(/*Paths.get(".").toAbsolutePath().normalize().toString() + "\\*/"FileSystem" + 
+                                        "//Peer_" + peerID + "//"+ 
+                                        fileID + "//Chunk_" + numChunk + ".txt");
         this.numChunk=numChunk;
         fileName=fileID;
     }
@@ -39,16 +40,26 @@ public class RestoreHandler extends Thread{
     {
         try
         {
-                               
-        //Transforma el file en array de bits
-        FileInputStream fis;
-        fis = new FileInputStream(file);
-        byte chunk[] = new byte[(int)file.length()];
-        System.out.println("LONG DEL CHUNK" + chunk.length);
-        fis.read(chunk);
-        MDRSender sender = new MDRSender(Peer.Peer.getMdrIP(), Peer.Peer.getMdrPort(), Peer.Peer.getProtVersion(), 
-                peerID, fileName,numChunk,chunk); 
-        sender.start();
+            if(!file.exists())
+            {
+                System.out.println("[RESTORE HANDLER]: CHUNK DOES NOT EXISTS");
+                return;
+            }
+            
+            byte[] chunk = Files.readAllBytes(file.toPath());
+        
+            
+            /*
+           //Transforma el file en array de bits
+           FileInputStream fis;
+           fis = new FileInputStream(file);
+           byte chunk[] = new byte[(int)file.length()];
+           */
+           System.out.println("LONG DEL CHUNK" + chunk.length);
+           //fis.read(chunk);
+           MDRSender sender = new MDRSender(Peer.Peer.getMdrIP(), Peer.Peer.getMdrPort(), Peer.Peer.getProtVersion(), 
+                   peerID, fileName, numChunk, chunk); 
+           sender.start();
         
 //int sleep = (int) (Math.random() * 400);
         }
