@@ -30,13 +30,18 @@ public class MDBHandler extends Thread
         [3] - File ID
         [4] - Chunk Nº
         [5] - Replicatioon Degree
+        [6] - "FROMRECLAIM" (ONLY EXISTS IF MESSAGE WAS ORIGINATED FROM A RECLAIM OPERATION)
         */
         
         if(peerID == Integer.parseInt(headerComponents[2]))
             return;
         
+        if(headerComponents.length == 7)
+            Peer.Peer.rd.add(headerComponents[3], Integer.parseInt(headerComponents[4]), Integer.parseInt(headerComponents[2]));
+        
         System.out.println("[MDB HANDLER]: RECEIVED MESSAGE: "+header);
         
+        Peer.Peer.rd.setDesiredReplicationDegree(headerComponents[3], Integer.parseInt(headerComponents[5]));
         BackupHandler handler = new BackupHandler(Float.parseFloat(headerComponents[1]),
                                                   peerID,
                                                   headerComponents[3],

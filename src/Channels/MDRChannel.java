@@ -35,7 +35,9 @@ public class MDRChannel extends Thread
             while(true)
             {
                 mcst.receive(dp);
-                new Thread(new MDRHandler(dp,peerID)).start();
+                MDRHandler handler = new MDRHandler(dp, peerID);
+                handler.start();
+                //new Thread(new MDRHandler(dp,peerID)).start();
             }
         }
         catch (IOException ex)

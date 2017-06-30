@@ -3,9 +3,7 @@ package Peer;
 import Channels.MCChannel;
 import Channels.MDBChannel;
 import Channels.MDRChannel;
-import Handlers.FileHandler;
 import Handlers.ReclaimHandler;
-import Objects.Chunk;
 import Senders.MCSender;
 import Senders.MDBSender;
 import java.io.IOException;
@@ -42,7 +40,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         name = ap;
         peerID = id;
         protVersion = version;
-        state = new State(peerID, totalMem);
+        state = new State(peerID, (totalMem));
         rd = new RepDegree();
     }
     
@@ -57,7 +55,7 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
         
         try
         {
-            Peer peer = new Peer(args[8], Integer.parseInt(args[7]), Float.parseFloat(args[6]), Long.parseLong(args[9]));
+            Peer peer = new Peer(args[8], Integer.parseInt(args[7]), Float.parseFloat(args[6]), Long.parseLong(args[9])*1000);
            
             try
             {
@@ -174,7 +172,6 @@ public class Peer extends UnicastRemoteObject implements RemoteInterface
     @Override
     public void restore(String fileName)
     {
-        System.out.println("RESTORE method called");
         try
         {
             MCSender sender = new MCSender(mcIP, mcPort, protVersion, peerID, "RESTORE");

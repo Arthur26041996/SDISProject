@@ -275,7 +275,7 @@ public final class State
             sb.append("\nFile pathname: ").append(rh.getPathName());
             sb.append("\nFile ID: ").append(rh.getFile());
             sb.append("\nDesired Replication Degree: ").append(Peer.rd.getDesiredReplicationDegree(rh.getFile()));
-            for(int chunk : rh.getChunks())//Peer.rd.getChunks(rh.getFile()))
+            for(int chunk : rh.getChunks())
             {
                 sb.append("\nChunk No ").append(chunk);
                 sb.append(" - Replication Degree: ").append(Peer.rd.getReplicationDegree(rh.getFile(), chunk));

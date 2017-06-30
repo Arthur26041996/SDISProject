@@ -33,6 +33,7 @@ public class ReclaimHandler extends Thread
         }
         else if(reclaim <= free)
         {
+            System.out.println("[RECLAIM HANDLER]: "+reclaim+" BYTES RECLAIMED");
             free -= reclaim;
             total -= reclaim;
             Peer.Peer.state.setAvailMem(free);
@@ -40,6 +41,7 @@ public class ReclaimHandler extends Thread
         }
         else
         {
+            System.out.println("[RECLAIM HANDLER]: RECLAIMING "+reclaim+" BYTES");
             reclaim -= free;
             total -= free;
             free = 0;
@@ -50,22 +52,15 @@ public class ReclaimHandler extends Thread
             File chunk;
             long chunkSize;
             
-            for(int i = 0; i < files.length; i++)
+            for (File file : files)
             {
-                System.out.println("FILES.LENGTH: "+files.length);
-                chunks = files[i].listFiles();
-                
-                for(int j = 0; j < chunks.length; j++)
+                chunks = file.listFiles();
+                for (File chunk1 : chunks)
                 {
-                    chunk = chunks[j];
-                    System.out.println(chunk.getName());
+                    chunk = chunk1;
                     chunkSize = chunk.length();
                     chunk.delete();
-                    Peer.Peer.state.removeChunkStored(
-                                                        files[i].getName(),
-                                                        Integer.parseInt(chunk.getName().split("_")[1].split("\\.")[0]), 
-                                                        false);
-                    
+                    Peer.Peer.state.removeChunkStored(file.getName(), Integer.parseInt(chunk.getName().split("_")[1].split("\\.")[0]), false);
                     try
                     {
                         MCSender sender = new MCSender(Peer.Peer.getMcIP(),
@@ -73,12 +68,9 @@ public class ReclaimHandler extends Thread
                                 Peer.Peer.getProtVersion(),
                                 Peer.Peer.getPeerID(),
                                 "RECLAIM");
-                        sender.setFile(files[i].getName());
-                        sender.setChunkNo(Integer.parseInt(
-                                          chunk.getName().split("_")[1].split("\\.")[0]
-                                        ));
+                        sender.setFile(file.getName());
+                        sender.setChunkNo(Integer.parseInt(chunk.getName().split("_")[1].split("\\.")[0]));
                         sender.start();
-                        
                         used -= chunkSize;
                         if(chunkSize >= reclaim)
                         {
@@ -94,13 +86,11 @@ public class ReclaimHandler extends Thread
                             total -= chunkSize;
                             reclaim -= chunkSize;
                         }
-                    }
-                    catch (SocketException ex)
+                    }catch (SocketException ex)
                     {
                         System.out.println("[RECLAIM HANDLER]: FAILED ATTEMPTING TO OPEN SOCKET");
                         ex.printStackTrace();
-                    }
-                    catch (UnknownHostException ex)
+                    }catch (UnknownHostException ex)
                     {
                         System.out.println("[RECLAIM HANDLER]: UNKNOW HOST");
                         ex.printStackTrace();

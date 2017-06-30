@@ -113,7 +113,7 @@ public class RepDegree
             {
                 if(chunk.get(fileID).get(chunkNo).contains(peerID))
                 {
-                    chunk.get(fileID).get(chunkNo).remove((Object) peerID);
+                    chunk.get(fileID).get(chunkNo).remove(new Integer(peerID));
                 }
             }
         }
@@ -135,7 +135,7 @@ public class RepDegree
     {
         if(chunk.containsKey(fileID) && chunk.get(fileID).containsKey(chunkNo))
             return chunk.get(fileID).get(chunkNo).size();
-        return -1;
+        return 0;
     }
     
     public void setDesiredReplicationDegree(String fileID, int replicationDegree)

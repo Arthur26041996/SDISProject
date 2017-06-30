@@ -48,6 +48,7 @@ public class RestoreHandler extends Thread{
         fis.read(chunk);
         MDRSender sender = new MDRSender(Peer.Peer.getMdrIP(), Peer.Peer.getMdrPort(), Peer.Peer.getProtVersion(), 
                 peerID, fileName,numChunk,chunk); 
+        sender.start();
         
 //int sleep = (int) (Math.random() * 400);
         }

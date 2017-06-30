@@ -74,6 +74,5 @@ public class MDRSender extends Thread {
         } catch (InterruptedException | IOException ex) {
             Logger.getLogger(MDRSender.class.getName()).log(Level.SEVERE, null, ex);
         }
-        }
-        
+    }    
 }
